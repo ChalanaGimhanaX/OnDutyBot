@@ -1,38 +1,67 @@
-# On Duty Bot
+# OnDutyBot — Discord Moderator Duty Management
 
-A Discord bot that gives moderators an on-duty toggle inside a dedicated staff channel. The bot posts a persistent embed with two buttons ("Go On Duty" and "Go Off Duty"). Clicking the buttons adds or removes the configured on-duty role, so the rest of your team knows who is actively moderating.
+A Python Discord bot that lets moderators toggle their on-duty status through persistent buttons and a shared staff panel.
 
-The bot also watches for pings of moderators who are off duty. If a member without administrator permissions mentions an off-duty moderator, the pinged message is deleted and a warning is posted to the channel.
+**Stack:** Python · discord.py · python-dotenv
 
 ## Features
-- Persistent duty panel embed with Discord buttons using the modern components API.
-- Automatic on-duty role management for moderators.
-- Prevents non-admin members from pinging moderators who are off duty.
-- Environment-driven configuration so no secrets live in the codebase.
 
-## Getting Started
-1. Install Python 3.10 or newer.
-2. Create and activate a virtual environment (recommended).
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Copy `.env.example` to `.env` and fill in the required IDs and your bot token.
-   - `DISCORD_TOKEN`: the bot token from the Discord Developer Portal.
-   - `STAFF_CHANNEL_ID`: the channel where the duty panel should live.
-   - `ONDUTY_ROLE_ID`: the role granted to moderators who are on duty.
-   - `MODERATOR_ROLE_IDS` (optional): comma-separated role IDs that should be treated as moderators when checking mentions.
-   - `ALLOWED_TOGGLE_ROLE_IDS` (optional): comma-separated role IDs allowed to press the duty buttons if they lack mod permissions.
-5. Invite the bot to your server with the `Manage Roles`, `View Channel`, `Send Messages`, and `Manage Messages` permissions.
-6. Run the bot:
-   ```bash
-   python bot.py
-   ```
+- Go On Duty / Go Off Duty buttons add or remove a configured role.
+- A persistent panel lists members currently on duty.
+- Configurable roles determine who may use the duty controls.
+- Off-duty moderator mentions trigger an attempt to delete the message and post a temporary warning.
+- Environment variables configure the bot and community-specific roles.
 
-When the bot starts, it posts (or refreshes) the duty panel in the configured staff channel. Moderators with appropriate permissions can toggle themselves on and off duty from there.
+## Setup
 
-## Notes
-- The bot needs the **on-duty role** to sit below its highest role so it can assign and remove it.
-- Mentions by administrators are ignored so leadership can override the restriction when needed.
-- Duplicate duty panel messages can be deleted manually; the bot will refresh the latest one on startup.
-- Update the embed styling inside `bot.py` if you want to match your server theme.
+Use Python 3.10+ and a Discord application with a bot.
+
+```bash
+git clone https://github.com/ChalanaGimhanaX/OnDutyBot.git
+cd OnDutyBot
+python -m venv .venv
+```
+
+Activate `.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` on macOS/Linux, then:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and supply your own values:
+
+| Variable | Purpose |
+| --- | --- |
+| `DISCORD_TOKEN` | Bot token; keep private |
+| `STAFF_CHANNEL_ID` | Channel where the duty panel appears |
+| `ONDUTY_ROLE_ID` | Role granted to moderators on duty |
+| `MODERATOR_ROLE_IDS` | Optional comma-separated moderator role IDs |
+| `ALLOWED_TOGGLE_ROLE_IDS` | Optional comma-separated roles allowed to toggle duty |
+
+Enable Server Members and Message Content privileged intents in the Discord Developer Portal. Invite the bot with View Channel, Read Message History, Send Messages, Embed Links, Manage Roles, and Manage Messages permissions. Place its highest role above the on-duty role.
+
+```bash
+python bot.py
+```
+
+## How it works
+
+`bot.py` registers a persistent `discord.ui.View`, locates or creates the panel, and handles role changes through Discord interactions. Message events check mentions against moderator roles and duty status.
+
+## Manual verification
+
+In a test server, check that an allowed moderator can toggle duty, an unauthorized member cannot toggle, and the panel updates after a successful role change. Also test missing-permission and role-hierarchy behavior.
+
+The mention handler does not explicitly exempt administrators. Adapt and test this policy before enabling message deletion in a live community.
+
+## Code guide
+
+- `bot.py`: duty panel, role permissions, and message handling.
+- `.env.example`: placeholder configuration.
+- `requirements.txt`: Python dependencies.
+
+Keep bot tokens, local configuration, bytecode, and runtime logs outside version control.
+
+## Author
+
+[Chalana Gimhana](https://github.com/ChalanaGimhanaX)
